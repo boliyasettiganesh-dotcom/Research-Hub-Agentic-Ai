@@ -1,0 +1,57 @@
+{
+  "name": "Paper",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Title of the research paper"
+    },
+    "authors": {
+      "type": "string",
+      "description": "Comma-separated list of authors"
+    },
+    "abstract": {
+      "type": "string",
+      "description": "Abstract or summary of the paper"
+    },
+    "year": {
+      "type": "number",
+      "description": "Publication year"
+    },
+    "journal": {
+      "type": "string",
+      "description": "Journal or conference name"
+    },
+    "doi": {
+      "type": "string",
+      "description": "Digital Object Identifier"
+    },
+    "workspace_id": {
+      "type": "string",
+      "description": "ID of the workspace this paper belongs to"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL of the uploaded paper file"
+    },
+    "key_findings": {
+      "type": "string",
+      "description": "Key findings or notes about the paper"
+    },
+    "methodology": {
+      "type": "string",
+      "description": "Research methodology used"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Topic tags for the paper"
+    }
+  },
+  "required": [
+    "title",
+    "workspace_id"
+  ]
+}

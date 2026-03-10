@@ -1,0 +1,119 @@
+import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus, Search, Filter } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { motion } from "framer-motion";
+import PaperCard from "../components/paper/PaperCard";
+import PaperFormDialog from "../components/paper/PaperFormDialog";
+
+export default function Papers() {
+  const [showForm, setShowForm] = useState(false);
+  const [editPaper, setEditPaper] = useState(null);
+  const [search, setSearch] = useState("");
+  const [filterWs, setFilterWs] = useState("all");
+  const queryClient = useQueryClient();
+
+  const { data: papers = [] } = useQuery({
+    queryKey: ["papers"],
+    queryFn: () => base44.entities.Paper.list("-created_date"),
+  });
+
+  const { data: workspaces = [] } = useQuery({
+    queryKey: ["workspaces"],
+    queryFn: () => base44.entities.Workspace.list(),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.Paper.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["papers"] });
+      setShowForm(false);
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.Paper.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["papers"] });
+      setEditPaper(null);
+      setShowForm(false);
+    },
+  });
+
+  const wsMap = workspaces.reduce((acc, ws) => { acc[ws.id] = ws.name; return acc; }, {});
+
+  const filtered = papers.filter(p => {
+    const matchSearch = p.title.toLowerCase().includes(search.toLowerCase()) ||
+      (p.authors || "").toLowerCase().includes(search.toLowerCase());
+    const matchWs = filterWs === "all" || p.workspace_id === filterWs;
+    return matchSearch && matchWs;
+  });
+
+  const handleSubmit = (data) => {
+    if (editPaper) {
+      updateMutation.mutate({ id: editPaper.id, data });
+    } else {
+      createMutation.mutate(data);
+    }
+  };
+
+  return (
+    <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-6">
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-foreground tracking-tight">Papers</h1>
+          <p className="text-sm text-muted-foreground mt-1">{papers.length} papers across {workspaces.length} workspaces</p>
+        </div>
+        <Button onClick={() => { setEditPaper(null); setShowForm(true); }} className="gap-2">
+          <Plus className="w-4 h-4" /> Add Paper
+        </Button>
+      </motion.div>
+
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <Input placeholder="Search papers..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+        </div>
+        <Select value={filterWs} onValueChange={setFilterWs}>
+          <SelectTrigger className="w-48">
+            <Filter className="w-3.5 h-3.5 mr-2 text-muted-foreground" />
+            <SelectValue placeholder="All Workspaces" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Workspaces</SelectItem>
+            {workspaces.map(ws => <SelectItem key={ws.id} value={ws.id}>{ws.name}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="grid gap-4">
+        {filtered.map((paper, i) => (
+          <PaperCard
+            key={paper.id}
+            paper={paper}
+            workspaceName={wsMap[paper.workspace_id]}
+            index={i}
+            onEdit={(p) => { setEditPaper(p); setShowForm(true); }}
+          />
+        ))}
+      </div>
+
+      {filtered.length === 0 && (
+        <div className="text-center py-16">
+          <p className="text-muted-foreground">No papers found. Add one to start building your research library.</p>
+        </div>
+      )}
+
+      <PaperFormDialog
+        open={showForm}
+        onOpenChange={(v) => { setShowForm(v); if (!v) setEditPaper(null); }}
+        onSubmit={handleSubmit}
+        paper={editPaper}
+        workspaces={workspaces}
+      />
+    </div>
+  );
+}

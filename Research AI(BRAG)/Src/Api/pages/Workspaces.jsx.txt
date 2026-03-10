@@ -1,0 +1,75 @@
+import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { motion } from "framer-motion";
+import WorkspaceCard from "../components/workspace/WorkspaceCard";
+import WorkspaceFormDialog from "../components/workspace/WorkspaceFormDialog";
+
+export default function Workspaces() {
+  const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState("");
+  const queryClient = useQueryClient();
+
+  const { data: workspaces = [] } = useQuery({
+    queryKey: ["workspaces"],
+    queryFn: () => base44.entities.Workspace.list("-created_date"),
+  });
+
+  const { data: papers = [] } = useQuery({
+    queryKey: ["papers"],
+    queryFn: () => base44.entities.Paper.list(),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => base44.entities.Workspace.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+      setShowForm(false);
+    },
+  });
+
+  const paperCounts = papers.reduce((acc, p) => {
+    acc[p.workspace_id] = (acc[p.workspace_id] || 0) + 1;
+    return acc;
+  }, {});
+
+  const filtered = workspaces.filter(w =>
+    w.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="p-6 lg:p-10 max-w-7xl mx-auto space-y-6">
+      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold text-foreground tracking-tight">Workspaces</h1>
+          <p className="text-sm text-muted-foreground mt-1">Organize your research projects</p>
+        </div>
+        <Button onClick={() => setShowForm(true)} className="gap-2">
+          <Plus className="w-4 h-4" /> New Workspace
+        </Button>
+      </motion.div>
+
+      <div className="relative max-w-sm">
+        <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+        <Input placeholder="Search workspaces..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+      </div>
+
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {filtered.map((ws, i) => (
+          <WorkspaceCard key={ws.id} workspace={ws} paperCount={paperCounts[ws.id] || 0} index={i} />
+        ))}
+      </div>
+
+      {filtered.length === 0 && (
+        <div className="text-center py-16">
+          <p className="text-muted-foreground">No workspaces found. Create one to get started.</p>
+        </div>
+      )}
+
+      <WorkspaceFormDialog open={showForm} onOpenChange={setShowForm} onSubmit={(data) => createMutation.mutate(data)} />
+    </div>
+  );
+}

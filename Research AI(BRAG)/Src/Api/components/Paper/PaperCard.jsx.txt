@@ -1,0 +1,68 @@
+import React from "react";
+import { FileText, ExternalLink, Calendar, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
+
+export default function PaperCard({ paper, workspaceName, onEdit, index }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.04 }}
+      className="bg-card rounded-xl border border-border p-5 hover:shadow-lg transition-all duration-300 group"
+    >
+      <div className="flex items-start gap-4">
+        <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+          <FileText className="w-5 h-5 text-primary" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2">
+            {paper.title}
+          </h3>
+          {paper.authors && (
+            <div className="flex items-center gap-1.5 mt-1.5">
+              <User className="w-3 h-3 text-muted-foreground" />
+              <p className="text-xs text-muted-foreground truncate">{paper.authors}</p>
+            </div>
+          )}
+          <div className="flex items-center gap-3 mt-2 flex-wrap">
+            {paper.year && (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Calendar className="w-3 h-3" />
+                <span>{paper.year}</span>
+              </div>
+            )}
+            {paper.journal && (
+              <Badge variant="outline" className="text-[10px] px-2 py-0">
+                {paper.journal}
+              </Badge>
+            )}
+            {workspaceName && (
+              <Badge className="text-[10px] px-2 py-0 bg-primary/10 text-primary border-primary/20">
+                {workspaceName}
+              </Badge>
+            )}
+          </div>
+          {paper.abstract && (
+            <p className="text-xs text-muted-foreground mt-3 line-clamp-2">{paper.abstract}</p>
+          )}
+          <div className="flex items-center gap-2 mt-3">
+            {paper.file_url && (
+              <a href={paper.file_url} target="_blank" rel="noopener noreferrer">
+                <Button variant="outline" size="sm" className="h-7 text-xs gap-1.5">
+                  <ExternalLink className="w-3 h-3" /> View File
+                </Button>
+              </a>
+            )}
+            {onEdit && (
+              <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={() => onEdit(paper)}>
+                Edit
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}

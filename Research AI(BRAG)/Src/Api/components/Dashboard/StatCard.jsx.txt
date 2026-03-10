@@ -1,0 +1,32 @@
+import React from "react";
+import { motion } from "framer-motion";
+
+export default function StatCard({ title, value, icon: Icon, color, subtitle }) {
+  const colorMap = {
+    indigo: "bg-primary/10 text-primary",
+    emerald: "bg-chart-2/10 text-chart-2",
+    amber: "bg-accent/10 text-accent-foreground",
+    rose: "bg-destructive/10 text-destructive",
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-card rounded-xl border border-border p-5 hover:shadow-lg transition-shadow duration-300"
+    >
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{title}</p>
+          <p className="text-3xl font-bold text-foreground mt-2">{value}</p>
+          {subtitle && (
+            <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
+          )}
+        </div>
+        <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${colorMap[color] || colorMap.indigo}`}>
+          <Icon className="w-5 h-5" />
+        </div>
+      </div>
+    </motion.div>
+  );
+}

@@ -1,0 +1,47 @@
+{
+  "name": "Workspace",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Name of the research workspace"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description of the research focus"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "completed",
+        "archived"
+      ],
+      "default": "active",
+      "description": "Current status of the workspace"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Research topic tags"
+    },
+    "color": {
+      "type": "string",
+      "enum": [
+        "indigo",
+        "emerald",
+        "amber",
+        "rose",
+        "sky",
+        "violet"
+      ],
+      "default": "indigo",
+      "description": "Color theme for the workspace"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}
